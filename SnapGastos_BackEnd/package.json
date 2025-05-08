@@ -12,12 +12,14 @@
   "dependencies": {
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "googleapis": "^148.0.0"
+    "googleapis": "^148.0.0",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/express-session": "^1.18.1",
     "@types/google-apps-script": "^1.0.97",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.3",
     "express-session": "^1.18.1",
     "nodemon": "^3.1.10",

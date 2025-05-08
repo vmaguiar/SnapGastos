@@ -1,0 +1,17 @@
+.dashboard-container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.user-photo {
+  width: 100px;
+  border-radius: 50%;
+  margin: 1rem 0;
+}
+
+.info-card {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f1f1f1;
+  border-radius: 10px;
+}
