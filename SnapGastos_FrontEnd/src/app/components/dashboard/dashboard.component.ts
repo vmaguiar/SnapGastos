@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
+import { Gasto, GastosService } from '../../services/gastos.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,24 +12,59 @@ import { jwtDecode } from 'jwt-decode';
 })
 export class DashboardComponent implements OnInit {
   name: string = '';
-  photo: string = '';
+  picture: string = '';
   email: string = '';
+  gastos: Gasto[] = [];
+  loading: boolean = true;
 
-  constructor(private route: ActivatedRoute) { }
+  constructor(private route: ActivatedRoute, private gastosServices: GastosService) { }
 
   ngOnInit() {
-    // Pegando dados
-    const token = this.route.snapshot.queryParamMap.get('token');
-    if (token) {
-      try {
-        const decoded: any = jwtDecode(token);
-        this.name = decoded.name;
-        this.photo = decoded.photo;
-        this.email = decoded.email || '';
+    this.processarToken();
+
+    this.gastosServices.getGastos().subscribe({
+      next: (res) => {
+        this.gastos = res.gastos;
+        this.loading = false;
+      },
+      error: (erro) => {
+        console.error('Erro ao buscar gastos: ', erro);
+        this.loading = false;
       }
-      catch (err) {
-        console.error('Token inválido:', err);
+    });
+  }
+
+  private processarToken() {
+    // 1. Primeiro tenta pela URL (caso login recém-feito)
+    const tokenAuth = this.route.snapshot.queryParamMap.get('token');
+
+    if (tokenAuth) {
+      this.salvarToken(tokenAuth);
+      // Remove o token da URL
+      window.history.replaceState({}, document.title, '/dashboard');
+    }
+
+
+    // 2. Se não vier da URL, tenta pelo localStorage
+    const tokenAuth2 = tokenAuth || localStorage.getItem('auth_token');
+
+    if (tokenAuth2) {
+      try {
+        const decoded: any = jwtDecode(tokenAuth2);
+        this.name = decoded.name || '';
+        this.picture = decoded.picture || '';
+        this.email = decoded.email || '';
+
+        console.log({ nome: this.name, fotoURL: this.picture, email: this.email });
+      }
+      catch (error) {
+        console.error('Token inválido:', error);
+        localStorage.removeItem('auth_token'); // limpa se estiver corrompido
       }
     }
+  }
+
+  private salvarToken(token: string) {
+    localStorage.setItem('auth_token', token);
   }
 }

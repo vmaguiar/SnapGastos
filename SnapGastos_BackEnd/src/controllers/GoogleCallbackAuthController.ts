@@ -10,40 +10,60 @@ import { nomeMesAtualEmPortugues } from "../utils/currentMonth";
 export const googleCallback = async (req: Request, res: Response) => {
   const code = req.query.code as string;
 
+  const nomeMesAtual = nomeMesAtualEmPortugues();
+
   try {
-    const nomeMesAtual = nomeMesAtualEmPortugues();
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
     //obter dados do usuario
     const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
-    const userInfo = await oauth2.userinfo.get();
-    const { name, picture, email } = userInfo.data;
+    const userInfoResponse = await oauth2.userinfo.get();
+    const user = userInfoResponse.data;
 
     // obter dados da planilha
     const spreadsheetId = await checkOrCreateSheet(oauth2Client);
 
     const sheets = google.sheets({ version: 'v4', auth: oauth2Client });
-    const sheetData = await sheets.spreadsheets.values.get({
+    // const sheetData = await sheets.spreadsheets.values.get({
+    //   spreadsheetId,
+    //   range: nomeMesAtual,
+    // });
+
+    req.session.user = {
+      name: user.name as string,
+      email: user.email as string,
+      picture: user.picture as string,
       spreadsheetId,
-      range: nomeMesAtual,
-    });
+      sheetTitle: nomeMesAtual as string,
+      tokens
+    };
 
 
-    const dados = sheetData.data.values || [];
+    const jwtToken = jwt.sign({
+      name: user.name as string,
+      picture: user.picture as string,
+      email: user.email as string
+    },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1h" }
+    );
+
+
+    // const dados = sheetData.data.values || [];
     //criar o token jwt
-    const tokenPayload = {
-      name,
-      picture,
-      email,
-      spreadsheetId,
-      nomeMesAtual,
-      dados,
-    }
-    const tokenDados = jwt.sign(tokenPayload, process.env.JWT_SECRET!, {
-      expiresIn: '1h',
-    });
-    res.redirect(`http://localhost:4200/dashboard?token=${tokenDados}`);
+    // const tokenPayload = {
+    //   name,
+    //   picture,
+    //   email,
+    //   spreadsheetId,
+    //   nomeMesAtual,
+    //   dados,
+    // }
+    // const tokenDados = jwt.sign(tokenPayload, process.env.JWT_SECRET!, {
+    //   expiresIn: '1h',
+    // });
+    res.redirect(`${process.env.FRONTEND_URL}/dashboard?token=${jwtToken}`);
     // res.json({ mensagem: 'login com Google OK!', spreadsheetId, dados });
   }
 
