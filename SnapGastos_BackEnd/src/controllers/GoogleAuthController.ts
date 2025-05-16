@@ -5,7 +5,7 @@ import oauth2Client from "../services/googleAuthService";
 export const loginGoogle = (_req: Request, res: Response) => {
   const scopes = [
     'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/userinfo.email'
   ];

@@ -54,8 +54,6 @@ export class DashboardComponent implements OnInit {
         this.name = decoded.name || '';
         this.picture = decoded.picture || '';
         this.email = decoded.email || '';
-
-        console.log({ nome: this.name, fotoURL: this.picture, email: this.email });
       }
       catch (error) {
         console.error('Token inválido:', error);

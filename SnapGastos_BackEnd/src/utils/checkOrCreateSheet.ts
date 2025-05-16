@@ -1,15 +1,19 @@
 import { google } from "googleapis";
 import { OAuth2Client } from 'google-auth-library';
+import dotenv from 'dotenv';
 
 import { nomeMesAtualEmPortugues } from "./currentMonth";
 
+
+dotenv.config();
 
 export const checkOrCreateSheet = async (auth: OAuth2Client): Promise<string> => {
   const drive = google.drive({ version: 'v3', auth });
   const sheets = google.sheets({ version: 'v4', auth });
 
   const fileResponse = await drive.files.list({
-    q: "name = 'snapgastos_2025' and mimeType = 'application/vnd.google-apps.spreadsheet'",
+    q: `mimeType = '${process.env.SHEET_MIME as string}' and appProperties has {key='${process.env.APP_KEY as string}' and value='${process.env.APP_VALUE as string}'} and trashed=false and (sharedWithMe or 'me' in owners)`,
+    spaces: "drive",
     fields: 'files(id, name)',
   });
 
@@ -20,11 +24,20 @@ export const checkOrCreateSheet = async (auth: OAuth2Client): Promise<string> =>
     currentMonth = nomeMesAtualEmPortugues();
     const createRes = await sheets.spreadsheets.create({
       requestBody: {
-        properties: { title: 'snapgastos_2025' },
+        properties: { title: process.env.SHEET_NAME as string },
         sheets: [{ properties: { title: currentMonth } }],
       }
     });
     spreadsheetId = createRes.data.spreadsheetId!;
+
+    await drive.files.update({
+      fileId: spreadsheetId,
+      requestBody: {
+        appProperties: {
+          [process.env.APP_KEY as string]: process.env.APP_VALUE as string
+        },
+      }
+    });
   }
 
   if (!spreadsheetId) {
