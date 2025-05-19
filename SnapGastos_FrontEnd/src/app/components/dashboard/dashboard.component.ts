@@ -75,6 +75,15 @@ export class DashboardComponent implements OnInit {
   }
 
 
+  private dataAtual() {
+    const dataAtual = new Date();
+    const anoAtual = dataAtual.getFullYear();
+    const mesAtual = String(dataAtual.getMonth() + 1).padStart(2, '0');
+    const diaAtual = String(dataAtual.getDate()).padStart(2, '0');
+    return `${anoAtual}-${mesAtual}-${diaAtual}`
+  }
+
+
   adicionarGasto(form: NgForm) {
     if (form.invalid) {
       return;
@@ -91,11 +100,17 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  private dataAtual() {
-    const dataAtual = new Date();
-    const anoAtual = dataAtual.getFullYear();
-    const mesAtual = String(dataAtual.getMonth() + 1).padStart(2, '0');
-    const diaAtual = String(dataAtual.getDate()).padStart(2, '0');
-    return `${anoAtual}-${mesAtual}-${diaAtual}`
+
+  deletarGasto(gasto: Gasto) {
+    const mesToDelete = gasto.data.replaceAll("/", "-");
+    this.gastosServices.deleteGasto(gasto.id, mesToDelete).subscribe({
+      next: (res: any) => {
+        console.log(res.mensagem);
+        this.gastos = this.gastos.filter(g => g.id !== gasto.id);
+      },
+      error: (err) => {
+        console.error('Erro ao remover gasto:', err);
+      }
+    });
   }
 }

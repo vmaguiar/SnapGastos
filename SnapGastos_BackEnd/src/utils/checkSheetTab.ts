@@ -33,14 +33,26 @@ export async function checkOrCreateTab(sheets: sheets_v4.Sheets, spreadsheetId: 
   }
 }
 
+// export async function IdHandlerOld(sheets: sheets_v4.Sheets, spreadsheetId: any, tituloSheet: string) {
+//   const existingRows = await sheets.spreadsheets.values.get({
+//     spreadsheetId,
+//     range: `${tituloSheet}!A2:A`,
+//   });
+
+//   const numLinhas = existingRows.data.values?.length || 0;
+//   const proximoID = numLinhas + 1;
+//   return proximoID;
+// }
+
+
 export async function IdHandler(sheets: sheets_v4.Sheets, spreadsheetId: any, tituloSheet: string) {
-  const existingRows = await sheets.spreadsheets.values.get({
+  const idRes = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${tituloSheet}!A2:A`,
+    range: `${tituloSheet}!G1`,
   });
 
-  const numLinhas = existingRows.data.values?.length || 0;
-  const proximoID = numLinhas + 1;
+  const ultimoID = parseInt(idRes.data.values?.[0]?.[0] || "0");
+  const proximoID = ultimoID + 1;
   return proximoID;
 }
 

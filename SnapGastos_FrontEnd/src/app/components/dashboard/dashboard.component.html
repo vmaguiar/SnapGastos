@@ -38,10 +38,12 @@
     <div class="gastos-list">
       @for (gasto of gastos; track gasto.nome){
       <div class="gasto-card">
+        <button (click)="deletarGasto(gasto)">🗑️ Excluir</button>
         <h4>{{ gasto.nome }}</h4>
         <p><strong>Valor:</strong> R$ {{ gasto.valor.toFixed(2) }}</p>
         <p><strong>Categoria:</strong> {{ gasto.categoria }}</p>
-        <p><strong>Data:</strong> {{ gasto.data }}</p>
+        <!-- <p><strong>Data:</strong> {{ gasto.data }}</p> -->
+        <p>{{ gasto.data }}</p>
       </div>
       }
     </div>

@@ -32,4 +32,16 @@ export class GastosService {
 
     return this.http.get<{ gastos: Gasto[] }>(this.apiURL, { headers, withCredentials: true });
   }
+
+
+  updateGasto() {
+
+  }
+
+
+  deleteGasto(id: string, mes: string) {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.delete(`${this.apiURL}/${id}?mes=${mes}`, { headers, withCredentials: true });
+  }
 }

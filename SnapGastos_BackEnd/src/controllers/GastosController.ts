@@ -62,11 +62,20 @@ export const postAddGasto = async (req: AuthenticatedRequest, res: Response): Pr
     const novaLinha = [[(await proximoID).toString(), nome, valor.toString(), categoria, dataFormatada]];
     await sheets.spreadsheets.values.append({
       spreadsheetId: getSpreadsheetId,
-      range: `${tituloSheet}!A2:D`,
+      range: `${tituloSheet}!A2:E`,
       valueInputOption: "USER_ENTERED",
       requestBody: {
         values: novaLinha
       }
+    });
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: getSpreadsheetId,
+      range: `${tituloSheet}!G1`,
+      valueInputOption: "RAW",
+      requestBody: {
+        values: [[(await proximoID).toString()]],
+      },
     });
 
     // res.status(201).json({
@@ -105,7 +114,7 @@ export const getAllMonthlyGastos = async (req: AuthenticatedRequest, res: Respon
     const sheets = google.sheets({ version: "v4", auth: oauth2Client });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${sheetTitle}!A2:D`
+      range: `${sheetTitle}!A2:E`
     });
 
     const linhas = response.data.values || [];
@@ -119,6 +128,7 @@ export const getAllMonthlyGastos = async (req: AuthenticatedRequest, res: Respon
     })).filter(g => g.nome);
 
     res.status(200).json({ gastos });
+    // console.log(gastos);
   }
   catch (error) {
     console.error("Erro ao buscar gastos:", error);
@@ -139,13 +149,14 @@ export const updateGasto = () => {
 export const deleteGasto = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const idGasto = req.params.id;
   const mesGasto = req.query.mes;
+  const tituloTab = nomeMesEmPortugues(mesGasto as string);
 
   const spreadsheetId = req.user.spreadsheetId;
   oauth2Client.setCredentials(req.user.tokens);
   const sheets = google.sheets({ version: "v4", auth: oauth2Client || undefined });
 
   try {
-    const range = `${mesGasto}!A2:E`;
+    const range = `${tituloTab}!A2:E`;
     const planilhaResponse = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range
@@ -168,7 +179,7 @@ export const deleteGasto = async (req: AuthenticatedRequest, res: Response): Pro
           {
             deleteDimension: {
               range: {
-                sheetId: await getTabIdByTitle(sheets, spreadsheetId, mesGasto as string),
+                sheetId: await getTabIdByTitle(sheets, spreadsheetId, tituloTab),
                 dimension: "ROWS",
                 startIndex: linhaIndex + 1,
                 endIndex: linhaIndex + 2
@@ -182,7 +193,7 @@ export const deleteGasto = async (req: AuthenticatedRequest, res: Response): Pro
     const updatedResponse = await sheets.spreadsheets.values.get({ spreadsheetId, range });
 
     res.status(200).json({
-      mensagem: 'Gasto removido com sucesso',
+      mensagem: 'Gasto removido com sucessooo',
       gastoRemovido: {
         id: gastoRemovido[0],
         nome: gastoRemovido[1],
