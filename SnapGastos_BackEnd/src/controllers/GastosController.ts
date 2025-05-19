@@ -3,7 +3,7 @@ import { google } from "googleapis";
 import { AuthenticatedRequest } from "../middlewares/authenticate";
 import oauth2Client from "../services/googleAuthService";
 import { formatarDataParaBR, nomeMesEmPortugues } from "../utils/currentMonth";
-import { checkOrCreateTab, IdHandler } from "../utils/checkSheetTab";
+import { checkOrCreateTab, getTabIdByTitle, IdHandler } from "../utils/checkSheetTab";
 
 // CREATE -> POST
 export const postAddGasto = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -136,6 +136,65 @@ export const updateGasto = () => {
 };
 
 // DELETE - DELETE
-export const deleteGasto = () => {
-  console.log("deleta o gasto de ID");
+export const deleteGasto = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const idGasto = req.params.id;
+  const mesGasto = req.query.mes;
+
+  const spreadsheetId = req.user.spreadsheetId;
+  oauth2Client.setCredentials(req.user.tokens);
+  const sheets = google.sheets({ version: "v4", auth: oauth2Client || undefined });
+
+  try {
+    const range = `${mesGasto}!A2:E`;
+    const planilhaResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range
+    });
+
+    const linhas = planilhaResponse.data.values || [];
+    const linhaIndex = linhas.findIndex(linha => linha[0] === idGasto);
+
+    if (linhaIndex === -1) {
+      res.status(404).json({ erro: 'ID não encontrado' });
+      return;
+    }
+
+    const gastoRemovido = linhas[linhaIndex];
+
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId: await getTabIdByTitle(sheets, spreadsheetId, mesGasto as string),
+                dimension: "ROWS",
+                startIndex: linhaIndex + 1,
+                endIndex: linhaIndex + 2
+              }
+            }
+          }
+        ]
+      }
+    });
+
+    const updatedResponse = await sheets.spreadsheets.values.get({ spreadsheetId, range });
+
+    res.status(200).json({
+      mensagem: 'Gasto removido com sucesso',
+      gastoRemovido: {
+        id: gastoRemovido[0],
+        nome: gastoRemovido[1],
+        valor: gastoRemovido[2],
+        categoria: gastoRemovido[3],
+        data: gastoRemovido[4]
+      },
+      gastosAtualizados: updatedResponse.data.values || []
+    });
+  }
+  catch (error) {
+    console.error('Erro ao deletar gasto:', error);
+    res.status(500).json({ erro: 'Erro interno ao deletar gasto' });
+  }
 };

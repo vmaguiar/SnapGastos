@@ -43,3 +43,10 @@ export async function IdHandler(sheets: sheets_v4.Sheets, spreadsheetId: any, ti
   const proximoID = numLinhas + 1;
   return proximoID;
 }
+
+
+export async function getTabIdByTitle(sheets: sheets_v4.Sheets, spreadsheetId: any, tituloSheet: string): Promise<number> {
+  const metadata = await sheets.spreadsheets.get({ spreadsheetId });
+  const sheet = metadata.data.sheets?.find(s => s.properties?.title === tituloSheet);
+  return sheet?.properties?.sheetId || 0;
+}
