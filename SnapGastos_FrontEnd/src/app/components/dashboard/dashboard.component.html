@@ -15,6 +15,14 @@
   <h2>Bem-vindo, {{ name }} 👋</h2>
   <img [src]="picture" alt="Foto do usuário" class="user-photo">
 
+  <form #f="ngForm" (ngSubmit)="adicionarGasto(f)">
+    <input ngModel name="nome" placeholder="Nome" required />
+    <input ngModel name="valor" type="number" step="0.01" placeholder="Valor" required />
+    <input ngModel name="categoria" placeholder="Categoria" required />
+    <input [(ngModel)]="dataHoje" name="data" type="date" required />
+    <button type="submit" [disabled]="f.invalid">Adicionar</button>
+  </form>
+
   <div class="info-card">
     <h3>Resumo do mês</h3>
 

@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Gasto {
+  id: string;
   nome: string;
   valor: number;
   categoria: string;
@@ -16,6 +17,14 @@ export class GastosService {
   private apiURL = 'http://localhost:3000/gastos';
 
   constructor(private http: HttpClient) { }
+
+
+  postGastos(gasto: Omit<Gasto, 'id'>) {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post<{ gasto: Gasto }>(this.apiURL, gasto, { headers, withCredentials: true });
+  }
+
 
   getGastos(): Observable<{ gastos: Gasto[] }> {
     const token = localStorage.getItem('auth_token');

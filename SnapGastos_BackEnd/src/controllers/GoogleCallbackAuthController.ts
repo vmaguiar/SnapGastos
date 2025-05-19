@@ -24,7 +24,7 @@ export const googleCallback = async (req: Request, res: Response) => {
     // obter dados da planilha
     const spreadsheetId = await checkOrCreateSheet(oauth2Client);
 
-    const sheets = google.sheets({ version: 'v4', auth: oauth2Client });
+    // const sheets = google.sheets({ version: 'v4', auth: oauth2Client });
     // const sheetData = await sheets.spreadsheets.values.get({
     //   spreadsheetId,
     //   range: nomeMesAtual,

@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { FormsModule, NgForm } from '@angular/forms';
 import { jwtDecode } from 'jwt-decode';
 import { Gasto, GastosService } from '../../services/gastos.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -19,12 +20,17 @@ export class DashboardComponent implements OnInit {
 
   constructor(private route: ActivatedRoute, private gastosServices: GastosService) { }
 
+  dataHoje: string = '';
+
+
   ngOnInit() {
     this.processarToken();
 
+    this.dataHoje = this.dataAtual();
+
     this.gastosServices.getGastos().subscribe({
       next: (res) => {
-        this.gastos = res.gastos;
+        this.gastos = (res.gastos || []).filter(g => g && g.nome);
         this.loading = false;
       },
       error: (erro) => {
@@ -33,6 +39,7 @@ export class DashboardComponent implements OnInit {
       }
     });
   }
+
 
   private processarToken() {
     // 1. Primeiro tenta pela URL (caso login recém-feito)
@@ -62,7 +69,33 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+
   private salvarToken(token: string) {
     localStorage.setItem('auth_token', token);
+  }
+
+
+  adicionarGasto(form: NgForm) {
+    if (form.invalid) {
+      return;
+    }
+
+    this.gastosServices.postGastos(form.value).subscribe({
+      next: (res) => {
+        this.gastos.push(res.gasto);
+        form.resetForm();
+      },
+      error: (err) => {
+        console.error('Erro ao adicionar: ', err);
+      }
+    });
+  }
+
+  private dataAtual() {
+    const dataAtual = new Date();
+    const anoAtual = dataAtual.getFullYear();
+    const mesAtual = String(dataAtual.getMonth() + 1).padStart(2, '0');
+    const diaAtual = String(dataAtual.getDate()).padStart(2, '0');
+    return `${anoAtual}-${mesAtual}-${diaAtual}`
   }
 }
