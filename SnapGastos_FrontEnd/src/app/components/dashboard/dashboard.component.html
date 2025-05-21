@@ -1,16 +1,3 @@
-<!-- <div class="dashboard-container">
-  <h2>Bem-vindo, {{ name }} 👋</h2>
-  <img [src]="photo" alt="Foto do usuário" class="user-photo">
-
-  <div class="info-card">
-    <h3>Resumo</h3>
-    <a href="http://localhost:3000/gastos">ver gastos?</a>
-    <p>Informações dos seus gastos aparecerão aqui em breve. {{photo}}</p>
-    <p>{{photo}}</p>
-    <p>{{email}}</p>
-  </div>
-</div> -->
-
 <div class="dashboard-container">
   <h2>Bem-vindo, {{ name }} 👋</h2>
   <img [src]="picture" alt="Foto do usuário" class="user-photo">
@@ -26,6 +13,11 @@
   <div class="info-card">
     <h3>Resumo do mês</h3>
 
+    <div class="resumo-mes">
+      <h3>R$ {{ getTotalGastosMes() }} Gasto no mês</h3>
+      <!-- <p>R$ {{ getTotalGastosMes() }}</p> -->
+    </div>
+
     @if(loading){
     <p>Carregando gastos...</p>
     }
@@ -38,13 +30,22 @@
     <div class="gastos-list">
       @for (gasto of gastos; track gasto.nome){
       <div class="gasto-card">
-        <button (click)="editarGasto(gasto)">Editar</button>
+        <div class="conteudo-card">
+          <h4>{{gasto.nome}}</h4>
+          <p><strong>Valor:</strong> R$ {{gasto.valor.toFixed(2)}}</p>
+          <p><strong>Categoria:</strong> {{ gasto.categoria }}</p>
+          <p>{{ gasto.data }}</p>
+        </div>
+
+        <button class="gear-btn" (click)="abrirModal(gasto)">⚙️</button>
+
+        <!-- <button (click)="editarGasto(gasto)">Editar</button>
         <button (click)="deletarGasto(gasto)">🗑️ Excluir</button>
         <h4>{{ gasto.nome }}</h4>
         <p><strong>Valor:</strong> R$ {{ gasto.valor.toFixed(2) }}</p>
         <p><strong>Categoria:</strong> {{ gasto.categoria }}</p>
-        <!-- <p><strong>Data:</strong> {{ gasto.data }}</p> -->
-        <p>{{ gasto.data }}</p>
+        <p><strong>Data:</strong> {{ gasto.data }}</p>
+        <p>{{ gasto.data }}</p> -->
       </div>
       }
     </div>
@@ -58,4 +59,24 @@
       </div>
     </div> -->
   </div>
+  @if(modalAberto){
+  <div class="modal-overlay">
+    <div class="modal">
+      <h3>Editar gasto</h3>
+
+      <form #editForm="ngForm">
+        <input [(ngModel)]="gastoEditando!.nome" name="nome" placeholder="Nome" required />
+        <input type="number" [(ngModel)]="gastoEditando!.valor" name="valor" placeholder="Valor" required />
+        <input [(ngModel)]="gastoEditando!.categoria" name="categoria" placeholder="Categoria" required />
+        <input type="date" [(ngModel)]="gastoEditando!.data" name="data" required />
+      </form>
+
+      <div class="modal-actions">
+        <button (click)="salvarEdicao()">Salvar</button>
+        <button (click)="deletarGasto()">Excluir</button>
+        <button (click)="fecharModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+  }
 </div>

@@ -21,6 +21,8 @@ export class DashboardComponent implements OnInit {
   constructor(private route: ActivatedRoute, private gastosServices: GastosService) { }
 
   dataHoje: string = '';
+  gastoEditando?: Gasto;
+  modalAberto: boolean = false;
 
 
   ngOnInit() {
@@ -122,17 +124,56 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  salvarEdicao() {
+    if (!this.gastoEditando) {
+      return;
+    }
 
-  deletarGasto(gasto: Gasto) {
-    const mesToDelete = gasto.data.replaceAll("/", "-");
-    this.gastosServices.deleteGasto(gasto.id, mesToDelete).subscribe({
-      next: (res: any) => {
-        console.log(res.mensagem);
-        this.gastos = this.gastos.filter(g => g.id !== gasto.id);
+    const mesToUpdate = this.gastoEditando.data.replaceAll("/", "-");
+    this.gastosServices.updateGasto(this.gastoEditando.id, this.gastoEditando, mesToUpdate).subscribe({
+      next: () => {
+        const index = this.gastos.findIndex(g => g.id === this.gastoEditando!.id);
+        if (index !== -1) {
+          this.gastos[index] = { ...this.gastoEditando! };
+          this.fecharModal();
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao editar gasto:', err);
+      }
+    });
+  }
+
+
+  deletarGasto() {
+    if (!this.gastoEditando) {
+      return;
+    }
+
+    const mesToDelete = this.gastoEditando!.data.replaceAll("/", "-");
+    this.gastosServices.deleteGasto(this.gastoEditando.id, mesToDelete).subscribe({
+      next: () => {
+        this.gastos = this.gastos.filter(g => g.id !== this.gastoEditando!.id);
+        this.fecharModal();
       },
       error: (err) => {
         console.error('Erro ao remover gasto:', err);
       }
     });
+  }
+
+
+  getTotalGastosMes(): number {
+    return this.gastos.reduce((total, g) => total + (g.valor || 0), 0);
+  }
+
+  abrirModal(gasto: Gasto) {
+    this.gastoEditando = { ...gasto };
+    this.modalAberto = true;
+  }
+
+  fecharModal() {
+    this.modalAberto = false;
+    this.gastoEditando = undefined;
   }
 }
