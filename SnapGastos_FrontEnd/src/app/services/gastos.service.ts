@@ -34,8 +34,10 @@ export class GastosService {
   }
 
 
-  updateGasto() {
-
+  updateGasto(id: string, gastoAtualizado: Gasto, mes: string) {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.put(`${this.apiURL}/${id}?mes=${mes}`, gastoAtualizado, { headers, withCredentials: true });
   }
 
 

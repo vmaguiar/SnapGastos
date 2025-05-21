@@ -101,6 +101,28 @@ export class DashboardComponent implements OnInit {
   }
 
 
+  editarGasto(gasto: Gasto) {
+    const nome = prompt('Novo nome:', gasto.nome);
+    const valor = prompt('Novo valor:', gasto.valor.toString());
+    const categoria = prompt('Nova categoria:', gasto.categoria);
+    const data = prompt('Nova data:', gasto.data);
+
+    if (nome && valor && categoria && data) {
+      const mesToUpdate = gasto.data.replaceAll("/", "-");
+      const gastoAtualizado = { ...gasto, nome, valor: parseFloat(valor), categoria, data, mesToUpdate };
+
+      this.gastosServices.updateGasto(gasto.id, gastoAtualizado, mesToUpdate).subscribe({
+        next: () => {
+          Object.assign(gasto, gastoAtualizado);
+        },
+        error: (err) => {
+          console.error('Erro ao editar gasto:', err);
+        }
+      });
+    }
+  }
+
+
   deletarGasto(gasto: Gasto) {
     const mesToDelete = gasto.data.replaceAll("/", "-");
     this.gastosServices.deleteGasto(gasto.id, mesToDelete).subscribe({

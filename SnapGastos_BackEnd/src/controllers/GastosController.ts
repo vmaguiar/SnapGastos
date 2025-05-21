@@ -141,8 +141,57 @@ export const getGasto = () => {
 };
 
 // UPDATE -> PUT OR PATCH
-export const updateGasto = () => {
-  console.log("atualiza o gasto de ID e passa os dados para atualizar");
+export const updateGasto = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const idGasto = req.params.id;
+  const mesGasto = req.query.mes;
+  const tituloTab = nomeMesEmPortugues(mesGasto as string);
+  const nomeGasto = req.body.nome;
+  const valorGasto = req.body.valor;
+  const categoriaGasto = req.body.categoria;
+  const dataGasto = req.body.data;
+
+  const spreadsheetId = req.user.spreadsheetId;
+  const range = `${tituloTab}!A2:E`;
+
+  oauth2Client.setCredentials(req.user.tokens);
+  const sheets = google.sheets({ version: "v4", auth: oauth2Client || undefined });
+
+  try {
+    const sheetRes = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: range
+    });
+
+    const linhas = sheetRes.data.values || [];
+    const linhaIndex = linhas.findIndex(linha => linha[0] === idGasto);
+
+    if (linhaIndex === -1) {
+      res.status(404).json({ erro: 'ID não encontrado' });
+      return;
+    }
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `${tituloTab}!A${linhaIndex + 2}:E${linhaIndex + 2}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [
+          [idGasto, nomeGasto, valorGasto, categoriaGasto, dataGasto]
+        ]
+      }
+    });
+
+    const gastosAtualizados = await sheets.spreadsheets.values.get({ spreadsheetId, range });
+
+    res.status(200).json({
+      mensagem: 'Gasto atualizado com sucesoo!',
+      gastosAtualizados: gastosAtualizados || []
+    });
+  }
+  catch (error) {
+    console.error('Erro ao atualizar gasto:', error);
+    res.status(500).json({ erro: 'Erro interno' });
+  }
 };
 
 // DELETE - DELETE
