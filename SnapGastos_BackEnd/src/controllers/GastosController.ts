@@ -104,6 +104,7 @@ export const postAddGasto = async (req: AuthenticatedRequest, res: Response): Pr
   // console.log("add um gasto na planilha");
 };
 
+
 // READ -> GET
 export const getAllMonthlyGastos = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -136,9 +137,46 @@ export const getAllMonthlyGastos = async (req: AuthenticatedRequest, res: Respon
   }
 };
 
-export const getGasto = () => {
-  console.log("retorna apenas o gasto relacionado ao ID");
-};
+
+export const getGastosPorCategoria = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const mesGasto = req.query.mes as string;
+  if (!mesGasto) {
+    res.status(400).json({ erro: 'mes é obrigatório' });
+    return;
+  }
+  const tituloTab = nomeMesEmPortugues(mesGasto as string);
+
+  const spreadsheetId = req.user.spreadsheetId;
+  oauth2Client.setCredentials(req.user.tokens);
+  const sheets = google.sheets({ version: "v4", auth: oauth2Client });
+
+  try {
+    const range = `${tituloTab}!A2:E`;
+    const sheetResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range
+    });
+
+    const linhas = sheetResponse.data.values || [];
+
+    const resumoCategoria: Record<string, number> = {};
+
+    linhas.forEach(linha => {
+      const valor = parseFloat(linha[2]);
+      const categoria = linha[3];
+      if (!isNaN(valor)) {
+        resumoCategoria[categoria] = (resumoCategoria[categoria] || 0) + valor;
+      }
+    });
+
+    res.json({ resumoCategoria: resumoCategoria });
+  }
+  catch (error) {
+    console.error('Erro ao analisar por categoria:', error);
+    res.status(500).json({ erro: 'Falha ao obter análise por categoria.' });
+  }
+}
+
 
 // UPDATE -> PUT OR PATCH
 export const updateGasto = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -193,6 +231,7 @@ export const updateGasto = async (req: AuthenticatedRequest, res: Response): Pro
     res.status(500).json({ erro: 'Erro interno' });
   }
 };
+
 
 // DELETE - DELETE
 export const deleteGasto = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
