@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { jwtDecode } from 'jwt-decode';
+import { NgChartsModule } from 'ng2-charts';
+import { ChartData } from 'chart.js';
 import { Gasto, GastosService } from '../../services/gastos.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, NgChartsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -18,8 +20,12 @@ export class DashboardComponent implements OnInit {
   gastos: Gasto[] = [];
   loading: boolean = true;
 
+  dadosCategoria: ChartData<'pie'> = { labels: [], datasets: [{ data: [] }] };
+  // dadosDia: ChartData<'bar'> = { labels: [], datasets: [{ data: [], label: 'Gastos por dia' }] }; WIP
+
   constructor(private route: ActivatedRoute, private gastosServices: GastosService) { }
 
+  totalMes = 0;
   dataHoje: string = '';
   gastoEditando?: Gasto;
   modalAberto: boolean = false;
@@ -40,6 +46,8 @@ export class DashboardComponent implements OnInit {
         this.loading = false;
       }
     });
+
+    this.carregarGraficos();
   }
 
 
@@ -83,6 +91,32 @@ export class DashboardComponent implements OnInit {
     const mesAtual = String(dataAtual.getMonth() + 1).padStart(2, '0');
     const diaAtual = String(dataAtual.getDate()).padStart(2, '0');
     return `${anoAtual}-${mesAtual}-${diaAtual}`
+  }
+
+
+  private carregarGraficos() {
+    const mesAtualTemp: string[] = this.dataHoje.split('-')
+    const mesAtual: string = mesAtualTemp[1];
+    this.gastosServices.getAnaliseCategoria(mesAtual).subscribe(res => {
+      const categorias = Object.keys(res.resumoCategoria);
+      const valores = Object.values(res.resumoCategoria);
+      this.dadosCategoria = {
+        labels: categorias,
+        datasets: [{ data: valores }]
+      };
+
+      this.totalMes = valores.reduce((s, v) => s + v, 0);
+    });
+
+    // WIP
+    // this.gastosService.getAnalisePorDia(this.mesAtual).subscribe(res => {
+    //   const dias   = Object.keys(res.gastosPorDia);
+    //   const valores = Object.values(res.gastosPorDia);
+    //   this.dadosDia = {
+    //     labels: dias,
+    //     datasets: [{ data: valores, label: 'Gastos por dia' }]
+    //   };
+    // });
   }
 
 
@@ -136,6 +170,7 @@ export class DashboardComponent implements OnInit {
         if (index !== -1) {
           this.gastos[index] = { ...this.gastoEditando! };
           this.fecharModal();
+          this.carregarGraficos();
         }
       },
       error: (err) => {
@@ -155,6 +190,7 @@ export class DashboardComponent implements OnInit {
       next: () => {
         this.gastos = this.gastos.filter(g => g.id !== this.gastoEditando!.id);
         this.fecharModal();
+        this.carregarGraficos();
       },
       error: (err) => {
         console.error('Erro ao remover gasto:', err);

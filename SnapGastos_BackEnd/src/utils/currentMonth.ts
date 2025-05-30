@@ -26,3 +26,7 @@ export function formatarDataParaBR(dataISO: string): string {
   const [ano, mes, dia] = dataISO.split('-');
   return `${dia}/${mes}/${ano}`;
 }
+
+export function numMesParaNome(mes: string) {
+  return mesesEmPortugues[parseInt(mes) - 1];
+}

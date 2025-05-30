@@ -2,7 +2,7 @@ import { Response } from "express";
 import { google } from "googleapis";
 import { AuthenticatedRequest } from "../middlewares/authenticate";
 import oauth2Client from "../services/googleAuthService";
-import { formatarDataParaBR, nomeMesEmPortugues } from "../utils/currentMonth";
+import { formatarDataParaBR, nomeMesEmPortugues, numMesParaNome } from "../utils/currentMonth";
 import { checkOrCreateTab, getTabIdByTitle, IdHandler } from "../utils/checkSheetTab";
 
 // CREATE -> POST
@@ -144,7 +144,7 @@ export const getGastosPorCategoria = async (req: AuthenticatedRequest, res: Resp
     res.status(400).json({ erro: 'mes é obrigatório' });
     return;
   }
-  const tituloTab = nomeMesEmPortugues(mesGasto as string);
+  const tituloTab = numMesParaNome(mesGasto as string);
 
   const spreadsheetId = req.user.spreadsheetId;
   oauth2Client.setCredentials(req.user.tokens);

@@ -66,3 +66,9 @@
 }
 .modal-actions { display:flex; gap:.5rem; margin-top:1rem; }
 .modal-actions button { flex:1; }
+
+.grafico-categoria, .grafico-dia {
+  max-width: 600px;
+  margin: 1rem auto;
+}
+canvas { display: block; }

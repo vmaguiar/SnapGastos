@@ -2,6 +2,17 @@
   <h2>Bem-vindo, {{ name }} 👋</h2>
   <img [src]="picture" alt="Foto do usuário" class="user-photo">
 
+  <h2>Total do mês: R$ {{ totalMes }}</h2>
+
+
+  <!-- Gráfico de pizza por categoria -->
+  <section class="grafico-categoria">
+    <h4>Gastos por categoria</h4>
+    <canvas baseChart [data]="dadosCategoria" [type]="'pie'">
+    </canvas>
+  </section>
+
+
   <form #f="ngForm" (ngSubmit)="adicionarGasto(f)">
     <input ngModel name="nome" placeholder="Nome" required />
     <input ngModel name="valor" type="number" step="0.01" placeholder="Valor" required />
