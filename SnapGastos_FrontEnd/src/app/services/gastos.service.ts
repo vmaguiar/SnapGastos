@@ -54,10 +54,10 @@ export class GastosService {
     return this.http.get<{ resumoCategoria: Record<string, number> }>(`${this.apiURL}/analise/por-categoria?mes=${mes}`, { headers, withCredentials: true });
   }
 
-  // WIP
-  // getAnaliseDia(mes: string) {
-  //   const token = localStorage.getItem('auth_token');
-  //   const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  //   return this.http.get<{ resumoCategoria: Record<string, number> }>(`${this.apiURL}/analise/por-categoria?mes=${mes}`, { headers, withCredentials: true });
-  // }
+
+  getAnaliseDia(data: string) {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.get<{ gastosPorDia: Record<string, number> }>(`${this.apiURL}/analise/por-dia?data=${data}`, { headers, withCredentials: true });
+  }
 }

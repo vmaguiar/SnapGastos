@@ -4,6 +4,12 @@
 
   <h2>Total do mês: R$ {{ totalMes }}</h2>
 
+  <!-- Gráfico de barras por dia -->
+  <section class="grafico-dia">
+    <h4>Gastos por dia</h4>
+    <canvas baseChart [data]="dadosDia" [type]="'bar'">
+    </canvas>
+  </section>
 
   <!-- Gráfico de pizza por categoria -->
   <section class="grafico-categoria">
@@ -11,6 +17,8 @@
     <canvas baseChart [data]="dadosCategoria" [type]="'pie'">
     </canvas>
   </section>
+
+  <hr>
 
 
   <form #f="ngForm" (ngSubmit)="adicionarGasto(f)">

@@ -30,3 +30,19 @@ export function formatarDataParaBR(dataISO: string): string {
 export function numMesParaNome(mes: string) {
   return mesesEmPortugues[parseInt(mes) - 1];
 }
+
+export function arrayDiasDoMes(data: string) {
+  const [anoStr, mesStr] = data.split('-');
+  const ano = parseInt(anoStr, 10);
+  const mesIdx = parseInt(mesStr, 10) - 1;
+  const dias: string[] = [];
+
+  const ultimoDia = new Date(ano, mesIdx + 1, 0).getDate();
+  for (let d = 1; d <= ultimoDia; d++) {
+    const diaStr = String(d).padStart(2, '0');
+    const mesStr = String(mesIdx + 1).padStart(2, '0');
+
+    dias.push(`${ano}-${mesStr}-${diaStr}`);
+  }
+  return dias;
+}

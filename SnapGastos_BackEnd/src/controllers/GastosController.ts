@@ -2,7 +2,7 @@ import { Response } from "express";
 import { google } from "googleapis";
 import { AuthenticatedRequest } from "../middlewares/authenticate";
 import oauth2Client from "../services/googleAuthService";
-import { formatarDataParaBR, nomeMesEmPortugues, numMesParaNome } from "../utils/currentMonth";
+import { arrayDiasDoMes, formatarDataParaBR, nomeMesEmPortugues, numMesParaNome } from "../utils/currentMonth";
 import { checkOrCreateTab, getTabIdByTitle, IdHandler } from "../utils/checkSheetTab";
 
 // CREATE -> POST
@@ -174,6 +174,55 @@ export const getGastosPorCategoria = async (req: AuthenticatedRequest, res: Resp
   catch (error) {
     console.error('Erro ao analisar por categoria:', error);
     res.status(500).json({ erro: 'Falha ao obter análise por categoria.' });
+  }
+}
+
+
+export const getGastosPorDia = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const dataGastos = req.query.data as string;
+  console.log(dataGastos);
+  if (!dataGastos) {
+    res.status(400).json({ erro: 'mes é obrigatório' });
+    return;
+  }
+
+  const tituloTab = nomeMesEmPortugues(dataGastos as string);
+  console.log(tituloTab);
+
+  const spreadsheetId = req.user.spreadsheetId;
+  oauth2Client.setCredentials(req.user.tokens);
+  const sheets = google.sheets({ version: "v4", auth: oauth2Client });
+
+  try {
+    const range = `${tituloTab}!A2:E`;
+    const sheetResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range
+    });
+    const linhas = sheetResponse.data.values || [];
+
+    const totais: Record<string, number> = {};
+
+    linhas.forEach(l => {
+      const valor = parseFloat(l[2]);
+      const dataBr = l[4] // dd/mm/aaaa
+
+      if (!isNaN(valor) && dataBr) {
+        const [dia, mes, ano] = dataBr.split('/');
+        const iso = `${ano}-${mes}-${dia}`;   // yyyy-MM-dd
+        totais[iso] = (totais[iso] || 0) + valor;
+      }
+    });
+
+
+    const diasMes = arrayDiasDoMes(dataGastos);
+    const resultado: Record<string, number> = {};
+    diasMes.forEach(d => resultado[d] = totais[d] || 0);
+    res.json({ gastosPorDia: resultado });
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: 'Front: Falha ao obter análise por dia' });
   }
 }
 

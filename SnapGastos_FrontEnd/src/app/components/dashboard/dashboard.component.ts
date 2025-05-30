@@ -21,7 +21,7 @@ export class DashboardComponent implements OnInit {
   loading: boolean = true;
 
   dadosCategoria: ChartData<'pie'> = { labels: [], datasets: [{ data: [] }] };
-  // dadosDia: ChartData<'bar'> = { labels: [], datasets: [{ data: [], label: 'Gastos por dia' }] }; WIP
+  dadosDia: ChartData<'bar'> = { labels: [], datasets: [{ data: [], label: 'Gastos por dia' }] };
 
   constructor(private route: ActivatedRoute, private gastosServices: GastosService) { }
 
@@ -108,15 +108,15 @@ export class DashboardComponent implements OnInit {
       this.totalMes = valores.reduce((s, v) => s + v, 0);
     });
 
-    // WIP
-    // this.gastosService.getAnalisePorDia(this.mesAtual).subscribe(res => {
-    //   const dias   = Object.keys(res.gastosPorDia);
-    //   const valores = Object.values(res.gastosPorDia);
-    //   this.dadosDia = {
-    //     labels: dias,
-    //     datasets: [{ data: valores, label: 'Gastos por dia' }]
-    //   };
-    // });
+
+    this.gastosServices.getAnaliseDia(this.dataHoje).subscribe(res => {
+      const dias = Object.keys(res.gastosPorDia);
+      const valores = Object.values(res.gastosPorDia);
+      this.dadosDia = {
+        labels: dias,
+        datasets: [{ data: valores, label: 'Gastos por dia' }]
+      };
+    });
   }
 
 
